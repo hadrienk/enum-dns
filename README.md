@@ -24,6 +24,22 @@ type Backend interface {
 }
 ```
 
+## Rest API
+
+Enum-dns also comes with a REST API to manipulate the backend's data. 
+
+/inverval GET
+
+/inverval/{prefix},[{limit}] GET|UPDATE
+
+prefix: String [1-9][0-9]{0,13}
+limit: String -?[0-9]+
+
+/inverval/{from}[,{to}[,{limit}]] GET|UPDATE
+
+from, to: String [1-9][0-9]{0,14} 
+limit: String -?[0-9]+
+ 
 ## Existing backends
 
 Enum-dns even comes with default backends. If you don't find what you need and make one, free to make a pull request.
