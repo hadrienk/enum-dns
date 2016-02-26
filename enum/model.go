@@ -1,4 +1,4 @@
-// backend.go
+// model.go
 package enum
 
 import (
@@ -34,14 +34,12 @@ func (e *RangeOverlapError) Error() string {
 }
 
 type Backend interface {
-	// Ranges returns a list of ranges. The n and c values allow to navigate.
-	// n is the number to start from. c is the count of values to return. A negative
-	// c value will return the values in reverse order.
-	Ranges(n uint64, c int) ([]NumberRange, error)
 
-	// RangeFor returns the NumberRange for a given n number, or nil if no NumberRange is
-	// found.
-	RangeFor(n uint64) (NumberRange, error)
+	// RangesBetween returns a list of ranges that enclose the given range l(ower) to u(pper) or
+	// nil if no range matches.
+	// The c parameter is the maximum count of values to return. If a negative c value is used
+	// it will return the ranges in reverse order.
+	RangesBetween(l, u uint64, c int) ([]NumberRange, error)
 
 	// Add a range to the backend. The operation can fail if the range overlap
 	AddRange(r NumberRange) ([]NumberRange, error)

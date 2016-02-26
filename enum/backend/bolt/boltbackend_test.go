@@ -81,7 +81,7 @@ func Test_get_all(t *testing.T) {
 		}
 	}
 
-	ranges, err := backend.Ranges(4740049999, 10)
+	ranges, err := backend.RangesBetween(4740049999, 4740050000, 10)
 	if err != nil {
 		t.Error("Impossible to get the ranges with backend.Ranges(1, 10): ", err)
 		t.FailNow()
@@ -113,12 +113,12 @@ func Test_create(t *testing.T) {
 		t.Error("Error while saving range: ", err)
 	}
 
-	result, err := backend.RangeFor(41067196)
+	result, err := backend.RangesBetween(4741067196, 4741067196, 1)
 	if err != nil {
 		t.Error("Error while retrieving the range: ", err)
 	}
 
-	if result.Regexp != numberRange.Regexp {
+	if result[0].Regexp != numberRange.Regexp {
 		t.Errorf("Expected %v, got %v", numberRange, result)
 	}
 
@@ -290,7 +290,7 @@ func BenchmarkRangeFor(b *testing.B) {
 
 	b.StartTimer()
 	for i := 1; i < b.N; i++ {
-		benchResult, _ = backend.RangeFor(1000)
+		benchResult, _ = backend.RangesBetween(1000, 1000, 1)
 	}
 
 }

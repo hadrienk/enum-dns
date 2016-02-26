@@ -1,18 +1,18 @@
 package bolt
 
 import (
-	"github.com/boltdb/bolt"
-	"math"
-	"errors"
+	"bytes"
 	"encoding/binary"
 	"encoding/json"
-	"bytes"
 	. "enum-dns/enum"
+	"errors"
+	"github.com/boltdb/bolt"
+	"math"
 )
 
 var (
 	rangeBucket = []byte("range")
-	enumBucket = []byte("enum")
+	enumBucket  = []byte("enum")
 )
 
 type boltbackend struct {
@@ -40,7 +40,7 @@ func NewBoltDBBackend(fileName string) (Backend, error) {
 		return nil, err
 	}
 
-	return boltbackend{database:db}, err
+	return boltbackend{database: db}, err
 }
 
 func (b boltbackend) Close() error {
@@ -55,7 +55,7 @@ func standardizeNumber(number uint64) (uint64, error) {
 	}
 
 	// 1234 -> 123400000000000 (E164).
-	number = uint64(float64(number) * math.Pow10(int(14 - math.Floor(math.Log10(float64(number))))))
+	number = uint64(float64(number) * math.Pow10(int(14-math.Floor(math.Log10(float64(number))))))
 
 	return number, nil
 
@@ -68,63 +68,79 @@ func Uint64ToBytes(input uint64) []byte {
 	return bytenum
 }
 
-func (b boltbackend) Ranges(n uint64, c int) ([]NumberRange, error) {
+func (b boltbackend) RangesBetween(l, u uint64, c int) ([]NumberRange, error) {
 
 	if c == 0 {
 		return []NumberRange{}, nil
-	}
+	} else {
 
-	n, err := standardizeNumber(n)
-	if err != nil {
-		return nil, err
-	}
+		l, err := standardizeNumber(l)
+		if err != nil {
+			return nil, err
+		}
 
-	ranges := make([]NumberRange, 0, 20)
-	err = b.database.View(func(tx *bolt.Tx) error {
-
-		cur := tx.Bucket(rangeBucket).Cursor()
-
-		Next := func(cur *bolt.Cursor, count *int) ([]byte, []byte) {
-			if *count > 0 {
+		var Next func(cur *bolt.Cursor, count *int) ([]byte, []byte)
+		var Check func(current []byte, check []byte, count *int) bool
+		var Max []byte
+		var Start []byte
+		switch {
+		case c > 0:
+			Next = func(cur *bolt.Cursor, count *int) ([]byte, []byte) {
 				*count = *count - 1
 				cur.Next()
 				return cur.Next()
-			} else {
+			}
+
+			Check = func(current []byte, check []byte, count *int) bool {
+				if *count == 0 {
+					return false
+				}
+				return bytes.Compare(current, check) >= 0
+			}
+			Start, Max = Uint64ToBytes(l), Uint64ToBytes(u)
+
+		case c < 0:
+			Next = func(cur *bolt.Cursor, count *int) ([]byte, []byte) {
 				*count = *count + 1
 				cur.Prev()
 				return cur.Prev()
 			}
-		}
 
-		Check := func(current []byte, check []byte, count *int) bool {
-			if *count == 0 {
-				return false
-			}
-			if *count > 0 {
-				return bytes.Compare(current, check) >= 0
-			} else {
+			Check = func(current []byte, check []byte, count *int) bool {
+				if *count == 0 {
+					return false
+				}
 				return bytes.Compare(current, check) <= 0
 			}
+			Start, Max = Uint64ToBytes(u), Uint64ToBytes(l)
+		default:
+			return nil, errors.New("c was 0, should not happen")
 		}
 
-		nb := Uint64ToBytes(n)
-		for value, id := cur.Seek(nb); value != nil && Check(value, nb, &c); value, id = Next(cur, &c) {
-			enumValue := tx.Bucket(enumBucket).Get(id)
-			if enumValue == nil {
-				return DBConsistencyError
+		ranges := make([]NumberRange, 0, 20)
+		err = b.database.View(func(tx *bolt.Tx) error {
+
+			cur := tx.Bucket(rangeBucket).Cursor()
+
+			for value, id := cur.Seek(Start); value != nil && Check(value, Max, &c); value, id = Next(cur, &c) {
+				enumValue := tx.Bucket(enumBucket).Get(id)
+				if enumValue == nil {
+					return DBConsistencyError
+				}
+
+				var numRange NumberRange
+				if err := json.Unmarshal(enumValue, &numRange); err != nil {
+					return err
+				}
+				ranges = append(ranges, numRange)
+
 			}
+			return nil
+		})
 
-			var numRange NumberRange
-			if err := json.Unmarshal(enumValue, &numRange); err != nil {
-				return err
-			}
-			ranges = append(ranges, numRange)
+		return ranges, err
 
-		}
-		return nil
-	})
-
-	return ranges, err
+	}
 
 }
 
@@ -150,7 +166,7 @@ func (b boltbackend) RangeFor(number uint64) (numRange NumberRange, err error) {
 }
 
 var (
-	DBConsistencyError = errors.New("database inconsistent")
+	DBConsistencyError     = errors.New("database inconsistent")
 	ConflictingRangesError = errors.New("conflicting ranges")
 )
 

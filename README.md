@@ -9,12 +9,9 @@ Enum-dns stores the records together with "intervals" (or ranges). For every ENU
 It relies on a single simple interface to query the data. Integrating it so that it can fit you current system is a matter of implementing the following: 
   
 ```go
-
 type Backend interface {
-	
-	Ranges(n uint64, c int) ([]NumberRange, error)
 
-	RangeFor(n uint64) (NumberRange, error)
+	RangesBetween(l, u uint64, c int) ([]NumberRange, error)
 
 	AddRange(r NumberRange) ([]NumberRange, error)
 
