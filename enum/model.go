@@ -41,12 +41,9 @@ type Backend interface {
 	// it will return the ranges in reverse order.
 	RangesBetween(l, u uint64, c int) ([]NumberRange, error)
 
-	// Add a range to the backend. The operation can fail if the range overlap
-	AddRange(r NumberRange) ([]NumberRange, error)
-
-	// Remove a particular range from the backend. Returns an error if the deletion
-	// fails.
-	RemoveRange(r NumberRange) error
+	// Add a range to the backend. Any range overlapping with the one added will be deleted or
+	// adjusted to make room for the new one and returned.
+	PushRange(r NumberRange) ([]NumberRange, error)
 
 	// Close the backend.
 	Close() error

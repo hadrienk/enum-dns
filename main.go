@@ -5,7 +5,7 @@
 // This DNS server replies to ENUM query using a customizable
 // backend implementation. The difference with other general
 // purpose DNS systems is that it allows to answer enum queries
-// using custom implementations that can for instance answer 
+// using custom implementations that can for instance answer
 // queries based on number ranges.
 //
 // Author: Hadrien Kohl <hadrien.kohl@gmail.com>
@@ -16,31 +16,33 @@ package main
 
 import (
 	"enum-dns/enum"
-	"github.com/miekg/dns"
-	"strings"
+	"enum-dns/enum/backend/bolt"
+	"enum-dns/enum/rest"
+	"errors"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/miekg/dns"
+	"log"
+	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
-	"log"
-	"errors"
 	"time"
-	"enum-dns/enum/backend/bolt"
 )
 
 var (
-	Info *log.Logger
-	Error *log.Logger
+	Info    *log.Logger
+	Error   *log.Logger
 	Warning *log.Logger
-	Trace *log.Logger
+	Trace   *log.Logger
 
 	backend enum.Backend
-	domain string
-	Config *Configuration
+	domain  string
+	Config  *Configuration
 )
 
 type Configuration struct {
-	suffixes          [] string
+	suffixes          []string
 	address           string
 	defaultService    string
 	defaultPreference uint16
@@ -51,29 +53,29 @@ func main() {
 
 	// TODO: Create configuration from file.
 	Config = &Configuration{
-		suffixes: nil,
-		defaultService:"E2U+sip",
-		defaultPreference:100,
-		address:"127.0.0.1:5354",
-		domain : "e164.arpa.",
+		suffixes:          nil,
+		defaultService:    "E2U+sip",
+		defaultPreference: 100,
+		address:           "127.0.0.1:5354",
+		domain:            "e164.arpa.",
 	}
 
 	// Initialize the loggers.
 	Info = log.New(os.Stdout,
 		"INFO: ",
-		log.Ldate | log.Ltime | log.Lshortfile)
+		log.Ldate|log.Ltime|log.Lshortfile)
 
 	Warning = log.New(os.Stdout,
 		"WARNING: ",
-		log.Ldate | log.Ltime | log.Lshortfile)
+		log.Ldate|log.Ltime|log.Lshortfile)
 
 	Error = log.New(os.Stderr,
 		"ERROR: ",
-		log.Ldate | log.Ltime | log.Lshortfile)
+		log.Ldate|log.Ltime|log.Lshortfile)
 
 	Trace = log.New(os.Stderr,
 		"TRACE: ",
-		log.Ldate | log.Ltime | log.Lshortfile)
+		log.Ldate|log.Ltime|log.Lshortfile)
 
 	// Make sure domain is FQDN
 	domain = dns.Fqdn(Config.domain)
@@ -87,35 +89,41 @@ func main() {
 
 	// BoltDB implementation
 	backend, err = bolt.NewBoltDBBackend("/home/hadrien/enum.bolt")
+	defer backend.Close()
 	if err != nil {
 		Error.Fatalf("dns: could not connect to the database: %v", err)
 	}
 
 	backend.AddRange(enum.NumberRange{
-		Lower:4740000000,
-		Upper:4749999999,
-		Regexp:"!^(.*)$!sip:\\@mobile!",
+		Lower:  4740000000,
+		Upper:  4749999999,
+		Regexp: "!^(.*)$!sip:\\@mobile!",
 	})
 	backend.AddRange(enum.NumberRange{
-		Lower:4790000000,
-		Upper:4799999999,
-		Regexp:"!^(.*)$!sip:\\1@oldmobile!",
+		Lower:  4790000000,
+		Upper:  4799999999,
+		Regexp: "!^(.*)$!sip:\\1@oldmobile!",
 	})
 	backend.AddRange(enum.NumberRange{
-		Lower:47580000000000,
-		Upper:47589999999999,
-		Regexp:"!^(.*)$!sip:\\1@m2m!",
+		Lower:  47580000000000,
+		Upper:  47589999999999,
+		Regexp: "!^(.*)$!sip:\\1@m2m!",
 	})
 	backend.AddRange(enum.NumberRange{
-		Lower:4759000000,
-		Upper:4759999999,
-		Regexp:"!^(.*)$!sip:\\1@m2m!",
+		Lower:  4759000000,
+		Upper:  4759999999,
+		Regexp: "!^(.*)$!sip:\\1@m2m!",
 	})
-
-	defer backend.Close()
 
 	Info.Printf("Starting enum dns on %v", Config.address)
 	server := &dns.Server{Addr: Config.address, Net: "udp"}
+
+	go func() {
+		handler := rest.CreateHttpHandlerFor(&backend)
+		if err := http.ListenAndServe(":8080", handler); err != nil {
+			Error.Fatalf("dns: error starting http server: %s", err)
+		}
+	}()
 
 	dns.HandleFunc(dns.Fqdn(Config.domain), handleRequest)
 	go func() {
@@ -130,13 +138,11 @@ func main() {
 	for {
 		select {
 		case s := <-sig:
-		// Fatalf calls os.Exit(1)
+			// Fatalf calls os.Exit(1)
 			Error.Fatalf("Signal (%d) received, stopping\n", s)
 		}
 	}
 }
-
-
 
 // Create a new answer for the message.
 func NewAnswerForRequest(message *dns.Msg) *dns.Msg {
@@ -178,9 +184,11 @@ func createAnswer(request *dns.Msg) (answer *dns.Msg, err error) {
 	}
 
 	var numberrange enum.NumberRange
-	if numberrange, err = backend.RangeFor(number); err != nil {
+	ranges, err := backend.RangesBetween(number, number, 1)
+	if err != nil || len(ranges) != 1 {
 		return
 	}
+	numberrange = ranges[0]
 
 	answer = NewAnswerForRequest(request)
 
@@ -190,7 +198,7 @@ func createAnswer(request *dns.Msg) (answer *dns.Msg, err error) {
 	naptr.Regexp = numberrange.Regexp
 
 	naptr.Preference = Config.defaultPreference // 1
-	naptr.Service = Config.defaultService //"E2U+sip"
+	naptr.Service = Config.defaultService       //"E2U+sip"
 
 	// Always terminal rule.
 	naptr.Flags = "u"
