@@ -2,9 +2,9 @@
 package mysql
 
 import (
-	"fmt"
 	"database/sql"
 	. "enum-dns/enum"
+	"fmt"
 )
 
 type mysqlbackend struct {
@@ -14,7 +14,7 @@ type mysqlbackend struct {
 // Create a new mysql backend
 func NewMysqlBackend(driver string, dataSourceName string) (Backend, error) {
 	con, err := sql.Open("mysql", "enum:j8v6xkaK@tcp(127.0.0.1:3307)/enum")
-	return mysqlbackend{database:con}, err
+	return mysqlbackend{database: con}, err
 }
 
 func (b mysqlbackend) Close() error {
