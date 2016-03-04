@@ -21,6 +21,36 @@ type Backend interface {
 }
 ```
 
+## Rest API
+
+Enum-dns also comes with a REST API to manipulate the backend's data. 
+
+/inverval GET
+
+`/inverval/{prefix},[{limit}]` GET|UPDATE
+
+prefix: String [1-9][0-9]{0,13}
+limit: String -?[0-9]+
+
+Example: 
+
+Calling '/interval/47,10' will return the 10 *first* intervals that overlap with [470000000000000,479999999999999] in ascending order.
+
+Calling '/interval/474,-10' will return the 10 *last* intervals that overlap with [474000000000000,474999999999999] in descending order.
+
+/inverval/{from}[,{to}[,{limit}]] GET|UPDATE
+
+from, to: String [1-9][0-9]{0,14} 
+limit: String -?[0-9]+
+
+Example:
+
+Calling /inverval/471234567800000 will return all the intervals that match [471234567800000,471234567800000]. One in that case.
+
+Calling /inverval/471234567800000,472000000000000 will return all the intervals that match [471234567800000,472000000000000] in ascending order.
+
+Calling /inverval/471234567800000,472000000000000,- will return all the intervals that match [471234567800000,472000000000000] in descending order.
+ 
 ## Existing backends
 
 Enum-dns even comes with default backends. If you don't find what you need and make one, free to make a pull request.
