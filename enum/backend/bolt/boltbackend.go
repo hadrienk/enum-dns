@@ -152,7 +152,7 @@ func load(bucket *bolt.Bucket, key []byte) (NumberRange, error) {
 	if err := json.Unmarshal(bytes, &r); err != nil {
 		return r, err
 	}
-	fmt.Printf("loaded:\t\t[%d:%d]\n", r.Lower, r.Upper)
+
 	return r, nil
 }
 
@@ -162,7 +162,6 @@ func save(bucket *bolt.Bucket, r NumberRange) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("saved:\t\t[%d:%d]\n", r.Lower, r.Upper)
 	return bucket.Put(uint64tobyte(r.Upper), bytes)
 }
 
@@ -171,7 +170,6 @@ func pushBefore(bucket *bolt.Bucket, key []byte, r NumberRange) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("push bef:\t[%d:%d]\n", r.Lower, r.Upper)
 	toUpdate.Upper = r.Lower - 1
 	if err := bucket.Delete(key); err != nil {
 		return err
@@ -185,7 +183,6 @@ func pushAfter(bucket *bolt.Bucket, key []byte, r NumberRange) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("push aft:\t[%d:%d]\n", r.Lower, r.Upper)
 	toUpdate.Lower = r.Upper + 1
 	if err := bucket.Delete(key); err != nil {
 		return err
@@ -214,12 +211,6 @@ func (b boltbackend) PushRange(r NumberRange) ([]NumberRange, error) {
 		bucket := tx.Bucket(bucketName)
 		keys, values := rangesBetween(bucket, r.Lower, r.Upper, 0)
 
-		fmt.Print("Overlap:\n")
-		for _, key := range keys {
-			load(bucket, key)
-		}
-		fmt.Print("\n")
-
 		if len(keys) != len(values) {
 			return DBConsistencyError
 		}
@@ -237,7 +228,6 @@ func (b boltbackend) PushRange(r NumberRange) ([]NumberRange, error) {
 		}
 
 		if len(keys) >= 3 {
-			fmt.Printf("delete %+v\n", keys[1:len(keys)])
 			for _, key := range keys[1 : len(keys)-1] {
 				if err := bucket.Delete(key); err != nil {
 					return err
