@@ -16,7 +16,7 @@ package main
 
 import (
 	"enum-dns/enum"
-	"enum-dns/enum/backend/bolt"
+	"enum-dns/enum/backend/memory"
 	"enum-dns/enum/rest"
 	"errors"
 	_ "github.com/go-sql-driver/mysql"
@@ -88,28 +88,35 @@ func main() {
 	//backend, err = enum.NewMysqlBackend("mysql", "enum:j8v6xkaK@tcp(127.0.0.1:3307)/enum")
 
 	// BoltDB implementation
-	backend, err = bolt.NewBoltDBBackend("/home/hadrien/enum.bolt")
-	defer backend.Close()
+	//backend, err = bolt.NewBoltDBBackend("/home/hadrien/enum.bolt")
+	//defer backend.Close()
 	if err != nil {
 		Error.Fatalf("dns: could not connect to the database: %v", err)
 	}
 
-	backend.AddRange(enum.NumberRange{
+	// Memory
+	backend, err = memory.NewMemoryBackend()
+	if err != nil {
+		Error.Fatalf("dns: could not connect to the database: %v", err)
+	}
+	defer backend.Close()
+
+	backend.PushRange(enum.NumberRange{
 		Lower:  4740000000,
 		Upper:  4749999999,
 		Regexp: "!^(.*)$!sip:\\@mobile!",
 	})
-	backend.AddRange(enum.NumberRange{
+	backend.PushRange(enum.NumberRange{
 		Lower:  4790000000,
 		Upper:  4799999999,
 		Regexp: "!^(.*)$!sip:\\1@oldmobile!",
 	})
-	backend.AddRange(enum.NumberRange{
+	backend.PushRange(enum.NumberRange{
 		Lower:  47580000000000,
 		Upper:  47589999999999,
 		Regexp: "!^(.*)$!sip:\\1@m2m!",
 	})
-	backend.AddRange(enum.NumberRange{
+	backend.PushRange(enum.NumberRange{
 		Lower:  4759000000,
 		Upper:  4759999999,
 		Regexp: "!^(.*)$!sip:\\1@m2m!",

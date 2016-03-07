@@ -16,6 +16,14 @@ type NumberRange struct {
 	Replacement string
 }
 
+func (r *NumberRange) OverlapWith(o NumberRange) bool {
+	if o.Lower <= r.Lower && r.Upper <= o.Upper {
+		return true
+	} else {
+		return false
+	}
+}
+
 // RangeOverlapError is returned when an operation fails because
 // a range overlaps with on or more other ranges.
 type RangeOverlapError struct {
@@ -34,7 +42,6 @@ func (e *RangeOverlapError) Error() string {
 }
 
 type Backend interface {
-
 	// RangesBetween returns a list of ranges that enclose the given range l(ower) to u(pper) or
 	// nil if no range matches.
 	// The c parameter is the maximum count of values to return. If a negative c value is used
