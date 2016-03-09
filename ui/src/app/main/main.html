@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container" ng-controller="MainController" >
 
   <div class="page-header">
     <h1>Enum-DNS <small>interval based ENUM DNS server</small></h1>
@@ -13,15 +13,17 @@
     Showing 1234 results for query 65489
   </small>
 
-  <div class="row">
+  <div class="row" ng-repeat="interval in searchResult">
     <div class="col-md-12">
       <div class="panel panel-default">
         <div class="panel-heading">
-          <strong>[100000000000000:999999999999999] <small>Optionnal description...</small></strong>
+          <strong>[{{ interval.lower }}:{{ interval.upper }}] <small>Optionnal description...</small></strong>
           <div class="buttons pull-right">
-            <a href="#" class="btn btn-default btn-xs" role="button">Edit</a>
-            <div class="btn-group">
-              <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown"
+
+            <a href="#" class="btn btn-default btn-xs" role="button" ng-click="mergeWith(interval)">Edit</a>
+
+            <div class="btn-group" dropdown>
+              <button type="button" class="btn btn-default btn-xs" dropdown-toggle
                       aria-haspopup="true"
                       aria-expanded="false">
                 Merge <span class="caret"></span>
@@ -31,8 +33,9 @@
                 <li><a href="#">downward</a></li>
               </ul>
             </div>
-            <div class="btn-group">
-              <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown"
+
+            <div class="btn-group" dropdown>
+              <button type="button" class="btn btn-default btn-xs dropdown-toggle" dropdown-toggle
                       aria-haspopup="true"
                       aria-expanded="false">
                 Split <span class="caret"></span>
@@ -42,6 +45,7 @@
                 <li><a href="#">downward</a></li>
               </ul>
             </div>
+
           </div>
         </div>
         <table class="table table-condensed">
@@ -56,13 +60,13 @@
           </tr>
           </thead>
           <tbody>
-          <tr>
-            <td>100</td>
-            <td>10</td>
-            <td>U</td>
-            <td>E2U+sip</td>
-            <td>!^.*$!sip:customer-service@example.com!</td>
-            <td>.</td>
+          <tr ng-repeat="record in interval.records">
+            <td>{{ record.order }}</td>
+            <td>{{ record.preference }}</td>
+            <td>{{ record.flag }}</td>
+            <td>{{ record.service }}</td>
+            <td>{{ record.regex }}</td>
+            <td>{{ record.replacement }}</td>
           </tr>
           </tbody>
         </table>

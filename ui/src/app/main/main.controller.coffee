@@ -1,30 +1,93 @@
 angular.module 'ui'
-  .controller 'MainController', ($timeout, webDevTec, toastr) ->
-    'ngInject'
-    vm = this
-    activate = ->
-      getWebDevTec()
-      $timeout (->
-        vm.classAnimation = 'rubberBand'
-        return
-      ), 4000
-      return
+.controller 'MainController', ($http, $scope, $modal) ->
+  'ngInject'
+  vm = this
 
-    showToastr = ->
-      toastr.info 'Fork <a href="https://github.com/Swiip/generator-gulp-angular" target="_blank"><b>generator-gulp-angular</b></a>'
-      vm.classAnimation = ''
-      return
+  searchQuery = {}
 
-    getWebDevTec = ->
-      vm.awesomeThings = webDevTec.getTec()
-      angular.forEach vm.awesomeThings, (awesomeThing) ->
-        awesomeThing.rank = Math.random()
-        return
-      return
+  $scope.mergeWith = (interval) ->
+    $modal.open({
+      templateUrl: 'app/main/interval.html'
+      controller: 'IntervalController'
+      size: "lg"
+      resolve:
+        interval: ->
+          console.log(interval)
+          return interval
+    })
 
-    vm.awesomeThings = []
-    vm.classAnimation = ''
-    vm.creationDate = 1457427171875
-    vm.showToastr = showToastr
-    activate()
-    return
+    return ""
+
+  $scope.searchResult = [
+    {
+      upper: "123654"
+      lower: "123654"
+      records: [
+        {
+          order: 100
+          preference: 10
+          flag: "U"
+          service: "E2U+sip"
+          regex: "!^.*$!sip:customer-service@example.com!"
+          replacement: "."
+        },
+        {
+          order: 100
+          preference: 10
+          flag: "U"
+          service: "E2U+sip"
+          regex: "!^.*$!sip:customer-service@example.com!"
+          replacement: "."
+        },
+        {
+          order: 100
+          preference: 10
+          flag: "U"
+          service: "E2U+sip"
+          regex: "!^.*$!sip:customer-service@example.com!"
+          replacement: "."
+        }
+      ]
+    },
+    {
+      upper: "123654"
+      lower: "123654"
+      records: [
+        {
+          order: 100
+          preference: 10
+          flag: "U"
+          service: "E2U+sip"
+          regex: "!^.*$!sip:customer-service@example.com!"
+          replacement: "."
+        },
+        {
+          order: 100
+          preference: 10
+          flag: "U"
+          service: "E2U+sip"
+          regex: "!^.*$!sip:customer-service@example.com!"
+          replacement: "."
+        },
+        {
+          order: 100
+          preference: 10
+          flag: "U"
+          service: "E2U+sip"
+          regex: "!^.*$!sip:customer-service@example.com!"
+          replacement: "."
+        }
+      ]
+    }
+  ]
+
+  search = (query) ->
+    # Generate parameters for the searches.
+    splitter = /([\d:]*)\s/
+
+    numbers = ///
+          ([1-9][0-9]{0,14}) # Number of prefix
+          (?::([1-9][0-9]{0,14})){0,1} # Optional end number or prefix
+      ///
+
+  return
