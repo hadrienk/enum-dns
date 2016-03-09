@@ -102,24 +102,32 @@ func main() {
 	defer backend.Close()
 
 	backend.PushRange(enum.NumberRange{
-		Lower:  4740000000,
-		Upper:  4749999999,
-		Regexp: "!^(.*)$!sip:\\@mobile!",
+		Lower: 4740000000,
+		Upper: 4749999999,
+		Records: []enum.Record{
+			{Regexp: "!^(.*)$!sip:\\@mobile!"},
+		},
 	})
 	backend.PushRange(enum.NumberRange{
-		Lower:  4790000000,
-		Upper:  4799999999,
-		Regexp: "!^(.*)$!sip:\\1@oldmobile!",
+		Lower: 4790000000,
+		Upper: 4799999999,
+		Records: []enum.Record{
+			{Regexp: "!^(.*)$!sip:\\@mobile!"},
+		},
 	})
 	backend.PushRange(enum.NumberRange{
-		Lower:  47580000000000,
-		Upper:  47589999999999,
-		Regexp: "!^(.*)$!sip:\\1@m2m!",
+		Lower: 47580000000000,
+		Upper: 47589999999999,
+		Records: []enum.Record{
+			{Regexp: "!^(.*)$!sip:\\@mobile!"},
+		},
 	})
 	backend.PushRange(enum.NumberRange{
-		Lower:  4759000000,
-		Upper:  4759999999,
-		Regexp: "!^(.*)$!sip:\\1@m2m!",
+		Lower: 4759000000,
+		Upper: 4759999999,
+		Records: []enum.Record{
+			{Regexp: "!^(.*)$!sip:\\@mobile!"},
+		},
 	})
 
 	Info.Printf("Starting enum dns on %v", Config.address)
@@ -205,19 +213,21 @@ func createAnswer(request *dns.Msg) (answer *dns.Msg, err error) {
 	answer = NewAnswerForRequest(request)
 
 	// Create and populate the naptr answer.
-	naptr := new(dns.NAPTR)
-	naptr.Hdr = dns.RR_Header{Name: question.Name, Rrtype: question.Qtype, Class: question.Qclass, Ttl: 0}
-	naptr.Regexp = numberrange.Regexp
+	for _, record := range numberrange.Records {
+		naptr := new(dns.NAPTR)
+		naptr.Hdr = dns.RR_Header{Name: question.Name, Rrtype: question.Qtype, Class: question.Qclass, Ttl: 0}
+		naptr.Regexp = record.Regexp
 
-	naptr.Preference = Config.defaultPreference // 1
-	naptr.Service = Config.defaultService       //"E2U+sip"
+		naptr.Preference = Config.defaultPreference // 1
+		naptr.Service = Config.defaultService       //"E2U+sip"
 
-	// Always terminal rule.
-	naptr.Flags = "u"
-	naptr.Order = 1
-	naptr.Replacement = "."
+		// Always terminal rule.
+		naptr.Flags = "u"
+		naptr.Order = 1
+		naptr.Replacement = "."
 
-	answer.Answer = append(answer.Answer, naptr)
+		answer.Answer = append(answer.Answer, naptr)
+	}
 
 	return
 
