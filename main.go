@@ -126,7 +126,12 @@ func main() {
 	server := &dns.Server{Addr: Config.address, Net: "udp"}
 
 	go func() {
-		handler := rest.CreateHttpHandlerFor(&backend)
+		handler := rest.CreateHttpHandlerFor(&backend,
+			http.FileServer(
+				http.Dir("/home/hadrien/Projects/Go/src/enum-dns/ui/dist/"),
+			),
+		)
+
 		if err := http.ListenAndServe(":8080", handler); err != nil {
 			Error.Fatalf("dns: error starting http server: %s", err)
 		}

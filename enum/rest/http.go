@@ -14,11 +14,11 @@ type HttpEndpoint struct {
 	handler http.Handler
 }
 
-func CreateHttpHandlerFor(b *enum.Backend) http.Handler {
+func CreateHttpHandlerFor(b *enum.Backend, ui http.Handler) http.Handler {
 
-	router := mux.NewRouter().StrictSlash(true)
+	r := mux.NewRouter().StrictSlash(true)
 
-	http := HttpEndpoint{
+	h := HttpEndpoint{
 		backend: *b,
 	}
 
@@ -26,15 +26,17 @@ func CreateHttpHandlerFor(b *enum.Backend) http.Handler {
 	prefixRe := "[1-9][0-9]{0,13}"
 	limitRe := "-?[1-9][0-9]*"
 
-	router.HandleFunc(fmt.Sprintf("/interval/{prefix:%s}", prefixRe), http.IntervalForPrefixHandler)
-	router.HandleFunc(fmt.Sprintf("/interval/{from:%s}", numRe), http.IntervalForNumberHandler)
-	router.HandleFunc(fmt.Sprintf("/interval/{prefix:%s},{limit:%s}", prefixRe, limitRe), http.IntervalForPrefixHandler)
-	router.HandleFunc(fmt.Sprintf("/interval/{from:%s},{to:%s}", numRe, numRe), http.IntervalForNumberHandler)
-	router.HandleFunc(fmt.Sprintf("/interval/{from:%s},{to:%s},{limit:%s}", numRe, numRe, limitRe), http.IntervalForNumberHandler)
+	r.HandleFunc(fmt.Sprintf("/interval/{prefix:%s}", prefixRe), h.IntervalForPrefixHandler)
+	r.HandleFunc(fmt.Sprintf("/interval/{from:%s}", numRe), h.IntervalForNumberHandler)
+	r.HandleFunc(fmt.Sprintf("/interval/{prefix:%s},{limit:%s}", prefixRe, limitRe), h.IntervalForPrefixHandler)
+	r.HandleFunc(fmt.Sprintf("/interval/{from:%s},{to:%s}", numRe, numRe), h.IntervalForNumberHandler)
+	r.HandleFunc(fmt.Sprintf("/interval/{from:%s},{to:%s},{limit:%s}", numRe, numRe, limitRe), h.IntervalForNumberHandler)
 
-	http.handler = router
+	r.PathPrefix("/ui").Handler(http.StripPrefix("/ui", ui))
 
-	return &http
+	h.handler = r
+
+	return &h
 }
 
 func (h *HttpEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
