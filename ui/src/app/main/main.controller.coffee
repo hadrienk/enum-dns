@@ -1,5 +1,5 @@
 angular.module 'ui'
-.controller 'MainController', ($http, $scope, $modal) ->
+.controller 'MainController', ($http, $scope, $modal, $q) ->
   'ngInject'
   vm = this
 
@@ -10,78 +10,39 @@ angular.module 'ui'
       templateUrl: 'app/main/interval.html'
       controller: 'IntervalController'
       size: "lg"
-      resolve:
+      resolve: # pass "interval" as ctrl param using the fct.
         interval: ->
-          console.log(interval)
           return interval
     })
 
     return ""
 
-  $scope.searchResult = [
-    {
-      upper: "123654"
-      lower: "123654"
-      records: [
-        {
-          order: 100
-          preference: 10
-          flag: "U"
-          service: "E2U+sip"
-          regex: "!^.*$!sip:customer-service@example.com!"
-          replacement: "."
-        },
-        {
-          order: 100
-          preference: 10
-          flag: "U"
-          service: "E2U+sip"
-          regex: "!^.*$!sip:customer-service@example.com!"
-          replacement: "."
-        },
-        {
-          order: 100
-          preference: 10
-          flag: "U"
-          service: "E2U+sip"
-          regex: "!^.*$!sip:customer-service@example.com!"
-          replacement: "."
-        }
-      ]
-    },
-    {
-      upper: "123654"
-      lower: "123654"
-      records: [
-        {
-          order: 100
-          preference: 10
-          flag: "U"
-          service: "E2U+sip"
-          regex: "!^.*$!sip:customer-service@example.com!"
-          replacement: "."
-        },
-        {
-          order: 100
-          preference: 10
-          flag: "U"
-          service: "E2U+sip"
-          regex: "!^.*$!sip:customer-service@example.com!"
-          replacement: "."
-        },
-        {
-          order: 100
-          preference: 10
-          flag: "U"
-          service: "E2U+sip"
-          regex: "!^.*$!sip:customer-service@example.com!"
-          replacement: "."
-        }
-      ]
-    }
-  ]
+  def =
+    from: 100000000000000
+    to: 999999999999999
+    limit: 10
 
-  search = (query) ->
+  $http.get("/api/interval", {params: def}).success((data) ->
+    $scope.searchResult = data
+  ).error((data) ->
+    console.log(data)
+  )
+
+  canceler = {}
+
+  $scope.search = ->
+    if canceler.promise?
+      canceler.resolve()
+    else
+      canceler = $q.defer()
+
+    $http.get("/api/interval", {params: {prefix: $scope.query}, timeout: canceler.promise}).success((data) ->
+      $scope.searchResult = data
+    ).error((data) ->
+      console.log(data)
+    ).finally(->
+      canceler = {}
+    )
     # Generate parameters for the searches.
     splitter = /([\d:]*)\s/
 

@@ -1,25 +1,55 @@
-<div class="modal-header">
-  <h3 class="modal-title">Edit interval [{{ interval.lower }}:{{ interval.upper }}]</h3>
-</div>
-<div class="modal-body">
+<form name="intervalForm">
+  <div class="modal-header">
+    <h3 class="modal-title">Edit interval [{{ interval.lower }}:{{ interval.upper }}]</h3>
+  </div>
+  <div class="modal-body">
 
-  <table ng-table class="table table-condensed" show-filter="false">
-    <tr ng-repeat="record in interval.records">
-      <td title="'Order'">{{ record.order }}</td>
-      <td title="'Preference'">{{ record.preference }}</td>
-      <td title="'Flag'">{{ record.flag }}</td>
-      <td title="'Service'">{{ record.service }}</td>
-      <td title="'Regex'">{{ record.regex }}</td>
-      <td title="'Replacement'">{{ record.replacement }}</td>
-      <td>
-        <a><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
-        <a><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>
-      </td>
-    </tr>
-  </table>
+    <table ng-table class="table table-condensed" show-filter="false">
+      <tr ng-repeat="record in interval.records" ng-form="recordForm">
+        <td title="'Order'">
+          <span ng-if="recordForm.$pristine">{{ record.order }}</span>
+          <input ng-if="recordForm.$dirty" ng-model="record.order"
+                 type="number" name="name" class="editable-input form-control input-sm" required/>
+        </td>
+        <td title="'Preference'">
+          <span ng-if="recordForm.$pristine">{{ record.preference }}</span>
+          <input ng-if="recordForm.$dirty" ng-model="record.preference" type="number" name="name"
+                 class="editable-input form-control input-sm" required/>
+        </td>
+        <td title="'Flags'">
+          <span ng-if="recordForm.$pristine">{{ record.flags }}</span>
+          <input ng-if="recordForm.$dirty" ng-model="record.flags" type="text" name="name"
+                 class="editable-input form-control input-sm" required/>
+        </td>
+        <td title="'Service'">
+          <span ng-if="recordForm.$pristine">{{ record.service }}</span>
+          <input ng-if="recordForm.$dirty" ng-model="record.service" type="text" name="name"
+                 class="editable-input form-control input-sm" required/>
+        </td>
+        <td title="'Regexp'">
+          <span ng-if="recordForm.$pristine">{{ record.regexp }}</span>
+          <input ng-if="recordForm.$dirty" ng-model="record.regexp" type="text" name="name"
+                 class="editable-input form-control input-sm" required/>
+        </td>
+        <td title="'Replacement'">
+          <span ng-if="recordForm.$pristine">{{ record.replacement }}</span>
+          <input ng-if="recordForm.$dirty" ng-model="record.replacement"
+                 type="text" name="name" class="editable-input form-control input-sm" required/>
+        </td>
+        <td>
+          <a ng-click="recordForm.$setDirty()"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+          <a ng-click="removeRecord(record)"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>
+        </td>
+      </tr>
+    </table>
 
-</div>
-<div class="modal-footer">
-  <button class="btn btn-primary" type="button" ng-click="save()">OK</button>
-  <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
-</div>
+  </div>
+  <div class="modal-header">
+    <h3 class="modal-title">Edit interval [{{ interval.lower }}:{{ interval.upper }}]</h3>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit" ng-disabled="intervalForm.$pristine || intervalForm.$invalid " ng-click="save()">OK</button>
+    <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+  </div>
+
+</form>
