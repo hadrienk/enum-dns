@@ -3,11 +3,19 @@ package memory
 import (
 	. "enum-dns/enum"
 	"fmt"
+	"sort"
 )
 
 type storage struct {
 	entries []NumberRange
 }
+
+type Asc []NumberRange
+
+func (a Asc) Len() int           { return len(a) }
+func (a Asc) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a Asc) Less(i, j int) bool { return a[i].Lower < a[j].Lower }
+
 type memoryBackend struct {
 	s *storage
 }
@@ -50,11 +58,31 @@ func (b memoryBackend) PushRange(add NumberRange) ([]NumberRange, error) {
 		return nil, err
 	}
 
+	results := make([]NumberRange, 0)
+	for i := len(b.s.entries) - 1; i >= 0; i-- {
+		entry := b.s.entries[i]
+		if add.Contains(entry) {
+			b.s.entries = append(b.s.entries[:i], b.s.entries[i+1:]...)
+			results = append(results, entry)
+			fmt.Printf("delete [%d:%d]\n", entry.Lower, entry.Upper)
+		} else if entry.OverlapWith(add) {
+			fmt.Printf("adjust [%d:%d]\n", entry.Lower, entry.Upper)
+			if entry.Lower <= add.Lower && add.Lower <= entry.Upper {
+				entry.Upper = add.Lower - 1
+			}
+			if entry.Lower <= add.Upper && add.Upper <= entry.Upper {
+				entry.Lower = entry.Upper + 1
+			}
+		}
+	}
+
 	add.Lower = l
 	add.Upper = u
-	fmt.Printf("[%d:%d]", add.Lower, add.Upper)
+	fmt.Printf("adding [%d:%d]\n", add.Lower, add.Upper)
 	b.s.entries = append(b.s.entries, add)
-	return nil, nil
+	sort.Sort(Asc(b.s.entries))
+
+	return results, nil
 }
 
 func (b memoryBackend) Close() error {

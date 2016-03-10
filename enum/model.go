@@ -16,12 +16,17 @@ type NumberRange struct {
 	Replacement string
 }
 
+// Check if the range overlaps with another.
 func (r *NumberRange) OverlapWith(o NumberRange) bool {
 	if o.Lower <= r.Lower && r.Upper <= o.Upper {
 		return true
 	} else {
 		return false
 	}
+}
+
+func (r *NumberRange) Contains(o NumberRange) bool {
+	return r.Lower <= o.Lower && r.Upper >= o.Upper
 }
 
 // RangeOverlapError is returned when an operation fails because
