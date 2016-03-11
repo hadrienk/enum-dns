@@ -3,11 +3,15 @@
     <h3 class="modal-title">Split [{{ interval.lower }}:{{ interval.upper }}]</h3>
   </div>
   <div class="modal-body" ng-repeat="interval in intervals">
-    <span>{{ interval.upper }}:{{ interval.lower }}</span>
 
-    <input ng-if="$last || $middle " ng-model="interval.upper"
+    <input ng-if="$last || $middle" ng-model="interval.lower"
+           ng-change="intervals[$index-1].upper = interval.lower - 1"
            type="number" name="name" class="editable-input form-control input-sm" required/>
-    <input ng-if="$first || $middle" ng-model="interval.lower"
+    <span ng-if="!($last || $middle)">{{ interval.lower }}</span>
+    :
+    <span ng-if="!($first || $middle)">{{ interval.upper }}</span>
+    <input ng-if="$first || $middle " ng-model="interval.upper"
+           ng-change="intervals[$index+1].lower = interval.upper + 1"
            type="number" name="name" class="editable-input form-control input-sm" required/>
 
     <table class="table table-condensed">

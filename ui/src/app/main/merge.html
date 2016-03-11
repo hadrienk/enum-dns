@@ -1,0 +1,65 @@
+<form name="intervalForm">
+  <div class="modal-header">
+    <h3 class="modal-title">Merge [{{ interval.lower }}:{{ interval.upper }}] into [{{ into.lower }}:{{ into.upper }}]</h3>
+  </div>
+  <div class="modal-body">
+
+    <table class="table table-condensed">
+      <thead>
+      <tr>
+        <th>Order</th>
+        <th>Preference</th>
+        <th>Flags</th>
+        <th>Service</th>
+        <th>Regexp</th>
+        <th colspan="2">Replacement</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="record in interval.records">
+        <td>{{ record.order }}</td>
+        <td>{{ record.preference }}</td>
+        <td>{{ record.flags }}</td>
+        <td>{{ record.service }}</td>
+        <td>{{ record.regexp }}</td>
+        <td>{{ record.replacement }}</td>
+        <td><a ng-click="moveRecord(interval.records, into.records, record)"><span class="glyphicon glyphicon-menu-down" aria-hidden="true"></span></a></td>
+      </tr>
+      </tbody>
+    </table>
+
+    <table class="table table-condensed">
+      <thead>
+      <tr>
+        <th>Order</th>
+        <th>Preference</th>
+        <th>Flags</th>
+        <th>Service</th>
+        <th>Regexp</th>
+        <th colspan="2">Replacement</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="record in into.records">
+        <td>{{ record.order }}</td>
+        <td>{{ record.preference }}</td>
+        <td>{{ record.flags }}</td>
+        <td>{{ record.service }}</td>
+        <td>{{ record.regexp }}</td>
+        <td>{{ record.replacement }}</td>
+        <td><a ng-click="removeRecord(into.records, record)"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a></td>
+      </tr>
+      </tbody>
+    </table>
+
+  </div>
+
+
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit"
+            ng-click="save()">OK
+    </button>
+    <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+  </div>
+
+</form>

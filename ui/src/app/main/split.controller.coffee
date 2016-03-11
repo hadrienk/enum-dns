@@ -5,23 +5,23 @@ angular.module 'ui'
   $scope.interval = angular.copy(interval)
 
   if $scope.interval.upper - $scope.interval.lower >= 2
-    middle = $scope.interval.upper - Math.round(($scope.interval.upper - $scope.interval.lower) / 2)
+    middle = $scope.interval.lower + ($scope.interval.upper - $scope.interval.lower) // 2
     $scope.intervals = [
       {
-        upper: $scope.interval.upper
-        lower: middle
-        records: angular.copy($scope.interval.records)
-      },
-      {
         upper: middle - 1
-        lower: $scope.interval.upper
+        lower: angular.copy($scope.interval.lower)
+        records: angular.copy($scope.interval.records)
+      }
+      {
+        upper: angular.copy($scope.interval.upper)
+        lower: middle
         records: angular.copy($scope.interval.records)
       }
     ]
 
   $scope.save = ->
     $q.all(for interval in $scope.intervals
-        $http.put("/api/interval/#{$scope.interval.lower}:#{ $scope.interval.upper}", $scope.interval)
+      $http.put("/api/interval/#{interval.lower}:#{interval.upper}", interval)
     ).then(->
       $scope.$close()
     )

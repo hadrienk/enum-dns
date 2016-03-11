@@ -5,6 +5,20 @@ angular.module 'ui'
 
   searchQuery = {}
 
+  $scope.merge = (interval, into) ->
+    $modal.open({
+      templateUrl: 'app/main/merge.html'
+      controller: 'MergeController'
+      size: "lg"
+      resolve: # pass "interval" as ctrl param using the fct.
+        interval: ->
+          return interval
+        into: ->
+          return into
+    })
+
+    return ""
+
   $scope.edit = (interval) ->
     $modal.open({
       templateUrl: 'app/main/interval.html'

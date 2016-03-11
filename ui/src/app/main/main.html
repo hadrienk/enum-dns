@@ -21,7 +21,7 @@
     <div class="col-md-12">
       <div class="panel panel-default">
         <div class="panel-heading">
-          <strong>[{{ interval.lower }}:{{ interval.upper }}] <small>Optionnal description...</small></strong>
+          <strong>[{{ interval.lower }}:{{ interval.upper }}] <small>({{interval.upper - interval.lower}})</small></strong>
           <div class="buttons pull-right">
 
             <a href="#" class="btn btn-default btn-xs" role="button" ng-click="edit(interval)">Edit</a>
@@ -38,8 +38,8 @@
                 Merge <span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
-                <li><a href="#">upward</a></li>
-                <li><a href="#">downward</a></li>
+                <li><a href="#" ng-click="merge(interval, searchResult[$index-1])" ng-disabled="$first">upward</a></li>
+                <li><a href="#" ng-click="merge(interval, searchResult[$index+1])" ng-disabled="$last">downward</a></li>
               </ul>
             </div>
 
