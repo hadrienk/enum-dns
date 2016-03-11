@@ -6,14 +6,18 @@ import (
 )
 
 type NumberRange struct {
-	Upper       uint64
-	Lower       uint64
-	Order       uint16
-	Preference  uint16
-	Flags       string
-	Service     string
-	Regexp      string
-	Replacement string
+	Upper   uint64   `json:"upper"`
+	Lower   uint64   `json:"lower"`
+	Records []Record `json:"records"`
+}
+
+type Record struct {
+	Order       uint16 `json:"order"`
+	Preference  uint16 `json:"preference"`
+	Flags       string `json:"flags"`
+	Service     string `json:"service"`
+	Regexp      string `json:"regexp"`
+	Replacement string `json:"replacement"`
 }
 
 // Check if the range overlaps with another.
