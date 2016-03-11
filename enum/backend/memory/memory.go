@@ -60,18 +60,20 @@ func (b memoryBackend) PushRange(add NumberRange) ([]NumberRange, error) {
 
 	results := make([]NumberRange, 0)
 	for i := len(b.s.entries) - 1; i >= 0; i-- {
-		entry := b.s.entries[i]
-		if add.Contains(entry) {
+		entry := &b.s.entries[i]
+		fmt.Printf("checking [%d:%d] against [%d:%d] \n", entry.Lower, entry.Upper, add.Lower, add.Upper)
+		if add.Contains(*entry) {
 			b.s.entries = append(b.s.entries[:i], b.s.entries[i+1:]...)
-			results = append(results, entry)
 			fmt.Printf("delete [%d:%d]\n", entry.Lower, entry.Upper)
+			results = append(results, *entry)
 		} else if entry.OverlapWith(add) {
-			fmt.Printf("adjust [%d:%d]\n", entry.Lower, entry.Upper)
-			if entry.Lower <= add.Lower && add.Lower <= entry.Upper {
-				entry.Upper = add.Lower - 1
-			}
 			if entry.Lower <= add.Upper && add.Upper <= entry.Upper {
-				entry.Lower = entry.Upper + 1
+				fmt.Printf("adjust [%d:%d] to [%d:%d]\n", entry.Lower, entry.Upper, add.Upper+1, entry.Upper)
+				entry.Lower = add.Upper + 1
+			}
+			if entry.Lower <= add.Lower && add.Lower <= entry.Upper {
+				fmt.Printf("adjust [%d:%d] to [%d:%d]\n", entry.Lower, entry.Upper, entry.Lower, add.Lower-1)
+				entry.Upper = add.Lower - 1
 			}
 		}
 	}
@@ -81,6 +83,10 @@ func (b memoryBackend) PushRange(add NumberRange) ([]NumberRange, error) {
 	fmt.Printf("adding [%d:%d]\n", add.Lower, add.Upper)
 	b.s.entries = append(b.s.entries, add)
 	sort.Sort(Asc(b.s.entries))
+
+	for _, v := range b.s.entries {
+		fmt.Printf("end result: [%d:%d]\n", v.Lower, v.Upper)
+	}
 
 	return results, nil
 }
