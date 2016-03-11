@@ -18,15 +18,13 @@ type NumberRange struct {
 
 // Check if the range overlaps with another.
 func (r *NumberRange) OverlapWith(o NumberRange) bool {
-	if o.Lower <= r.Lower && r.Upper <= o.Upper {
-		return true
-	} else {
-		return false
-	}
+	right := r.Lower <= o.Lower && o.Lower <= r.Upper
+	left := o.Lower <= r.Lower && r.Lower <= o.Upper
+	return (left || right)
 }
 
 func (r *NumberRange) Contains(o NumberRange) bool {
-	return r.Lower <= o.Lower && r.Upper >= o.Upper
+	return r.Lower <= o.Lower && o.Upper <= r.Upper
 }
 
 // RangeOverlapError is returned when an operation fails because
