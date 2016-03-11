@@ -24,7 +24,12 @@
           <strong>[{{ interval.lower }}:{{ interval.upper }}] <small>Optionnal description...</small></strong>
           <div class="buttons pull-right">
 
-            <a href="#" class="btn btn-default btn-xs" role="button" ng-click="mergeWith(interval)">Edit</a>
+            <a href="#" class="btn btn-default btn-xs" role="button" ng-click="edit(interval)">Edit</a>
+
+            <button ng-click="split(interval)"
+                    type="button" class="btn btn-default btn-xs dropdown-toggle" >
+              Split
+            </button>
 
             <div class="btn-group" dropdown>
               <button type="button" class="btn btn-default btn-xs" dropdown-toggle
@@ -38,17 +43,8 @@
               </ul>
             </div>
 
-            <div class="btn-group" dropdown>
-              <button type="button" class="btn btn-default btn-xs dropdown-toggle" dropdown-toggle
-                      aria-haspopup="true"
-                      aria-expanded="false">
-                Split <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu">
-                <li><a href="#">upward</a></li>
-                <li><a href="#">downward</a></li>
-              </ul>
-            </div>
+
+
 
           </div>
         </div>

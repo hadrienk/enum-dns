@@ -2,20 +2,43 @@
   <div class="modal-header">
     <h3 class="modal-title">Split [{{ interval.lower }}:{{ interval.upper }}]</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" ng-repeat="interval in intervals">
+    <span>{{ interval.upper }}:{{ interval.lower }}</span>
 
-  </div>
-  <div class="modal-body">
+    <input ng-if="$last || $middle " ng-model="interval.upper"
+           type="number" name="name" class="editable-input form-control input-sm" required/>
+    <input ng-if="$first || $middle" ng-model="interval.lower"
+           type="number" name="name" class="editable-input form-control input-sm" required/>
 
+    <table class="table table-condensed">
+      <thead>
+      <tr>
+        <th>Order</th>
+        <th>Preference</th>
+        <th>Flags</th>
+        <th>Service</th>
+        <th>Regexp</th>
+        <th>Replacement</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="record in interval.records">
+        <td>{{ record.order }}</td>
+        <td>{{ record.preference }}</td>
+        <td>{{ record.flags }}</td>
+        <td>{{ record.service }}</td>
+        <td>{{ record.regexp }}</td>
+        <td>{{ record.replacement }}</td>
+      </tr>
+      </tbody>
+    </table>
   </div>
-  <div class="modal-header">
-    <h3 class="modal-title">Down [{{ interval.lower }}:{{ interval.upper }}]</h3>
-  </div>
-  <div class="modal-body">
 
-  </div>
+
   <div class="modal-footer">
-    <button class="btn btn-primary" type="submit" ng-disabled="intervalForm.$pristine || intervalForm.$invalid " ng-click="save()">OK</button>
+    <button class="btn btn-primary" type="submit"
+            ng-click="save()">OK
+    </button>
     <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
   </div>
 
