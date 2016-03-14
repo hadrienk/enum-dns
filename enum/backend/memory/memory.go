@@ -25,7 +25,7 @@ func NewMemoryBackend() (Backend, error) {
 	return &memoryBackend{s: &storage{entries: make([]NumberRange, 0)}}, nil
 }
 
-func (b memoryBackend) RangesBetween(l, u uint64, c int) ([]NumberRange, error) {
+func (b *memoryBackend) RangesBetween(l, u uint64, c int) ([]NumberRange, error) {
 	results := make([]NumberRange, 0)
 	r := NumberRange{Lower: l, Upper: u}
 	switch {
@@ -37,7 +37,6 @@ func (b memoryBackend) RangesBetween(l, u uint64, c int) ([]NumberRange, error) 
 			}
 		}
 	case c > 0:
-
 		for i := 0; i < len(b.s.entries) && c != 0; i++ {
 			if entry := b.s.entries[i]; entry.OverlapWith(r) {
 				results = append(results, entry)
@@ -48,7 +47,7 @@ func (b memoryBackend) RangesBetween(l, u uint64, c int) ([]NumberRange, error) 
 	return results, nil
 }
 
-func (b memoryBackend) PushRange(add NumberRange) ([]NumberRange, error) {
+func (b *memoryBackend) PushRange(add NumberRange) ([]NumberRange, error) {
 	// Just add
 	l, err := PrefixToE164(add.Lower)
 	if err != nil {
@@ -92,6 +91,6 @@ func (b memoryBackend) PushRange(add NumberRange) ([]NumberRange, error) {
 	return results, nil
 }
 
-func (b memoryBackend) Close() error {
+func (b *memoryBackend) Close() error {
 	return nil
 }
