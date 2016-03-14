@@ -102,29 +102,8 @@ func main() {
 	defer backend.Close()
 
 	backend.PushRange(enum.NumberRange{
-		Lower: 4740000000,
-		Upper: 4749999999,
-		Records: []enum.Record{
-			{Regexp: "!^(.*)$!sip:\\@mobile!"},
-		},
-	})
-	backend.PushRange(enum.NumberRange{
-		Lower: 4790000000,
-		Upper: 4799999999,
-		Records: []enum.Record{
-			{Regexp: "!^(.*)$!sip:\\@mobile!"},
-		},
-	})
-	backend.PushRange(enum.NumberRange{
-		Lower: 47580000000000,
-		Upper: 47589999999999,
-		Records: []enum.Record{
-			{Regexp: "!^(.*)$!sip:\\@mobile!"},
-		},
-	})
-	backend.PushRange(enum.NumberRange{
-		Lower: 4759000000,
-		Upper: 4759999999,
+		Lower: 100000000000000,
+		Upper: 999999999999999,
 		Records: []enum.Record{
 			{Regexp: "!^(.*)$!sip:\\@mobile!"},
 		},
@@ -164,7 +143,7 @@ func main() {
 	}
 }
 
-// Create a new answer for the message.
+// Instantiate a new answer as a reply of the passed message.
 func NewAnswerForRequest(message *dns.Msg) *dns.Msg {
 	answer := new(dns.Msg)
 	answer.SetReply(message)
@@ -173,13 +152,14 @@ func NewAnswerForRequest(message *dns.Msg) *dns.Msg {
 	return answer
 }
 
-// Extract the E164 part of an ENUM query.
+// Extract the E164 part of an ENUM query. Ex: 1.2.3.4.domain -> 4321.
 func extractE164FromName(name string, domain string) (number uint64, err error) {
 	numberprefix := strings.TrimSuffix(name, domain)
 	if len(numberprefix) == len(name) {
 		err = errors.New("The domain '" + domain + "' was not present in the name '" + name + "'")
 	} else {
 		number, err = enum.ConvertEnumToInt(numberprefix)
+		number, err = enum.PrefixToE164(number)
 	}
 	return
 }
@@ -204,6 +184,7 @@ func createAnswer(request *dns.Msg) (answer *dns.Msg, err error) {
 	}
 
 	var numberrange enum.NumberRange
+	Trace.Printf("backend.RangesBetween(%d, %d, 1)", number, number)
 	ranges, err := backend.RangesBetween(number, number, 1)
 	if err != nil || len(ranges) != 1 {
 		return
@@ -243,18 +224,19 @@ func handleRequest(writer dns.ResponseWriter, request *dns.Msg) {
 
 	if answer, err := createAnswer(request); err == nil {
 
-		if answer != nil {
-			if err := writer.WriteMsg(answer); err != nil {
-				Error.Printf("error sending answer: %v", err)
-			}
-			return
-		} else {
+		if answer == nil {
 			Trace.Printf("no result found for %s", request.Question[0])
 			notfound := &dns.Msg{}
 			notfound.SetReply(request)
 			notfound.SetRcode(request, dns.RcodeSuccess)
 			writer.WriteMsg(notfound)
+			return
 		}
+
+		if err := writer.WriteMsg(answer); err != nil {
+			Error.Printf("error sending answer: %v", err)
+		}
+
 	} else {
 		Error.Printf("[ERR] Error getting the answer: %v", err)
 		error := &dns.Msg{}

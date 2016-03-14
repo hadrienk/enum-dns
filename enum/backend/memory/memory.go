@@ -37,6 +37,7 @@ func (b memoryBackend) RangesBetween(l, u uint64, c int) ([]NumberRange, error) 
 			}
 		}
 	case c > 0:
+
 		for i := 0; i < len(b.s.entries) && c != 0; i++ {
 			if entry := b.s.entries[i]; entry.OverlapWith(r) {
 				results = append(results, entry)
