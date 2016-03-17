@@ -99,7 +99,7 @@ func (h *ENUMHandler) createAnswer(request *dns.Msg) (answer *dns.Msg, err error
 
 	answer = h.answerForRequest(request)
 
-	// Create and populate the naptr answer.
+	// Create and populate the NAPTR answers.
 	for _, record := range numberrange.Records {
 		naptr := new(dns.NAPTR)
 		naptr.Hdr = dns.RR_Header{Name: question.Name, Rrtype: question.Qtype, Class: question.Qclass, Ttl: 0}

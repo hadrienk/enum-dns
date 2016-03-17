@@ -48,7 +48,6 @@ func (b *memoryBackend) RangesBetween(l, u uint64, c int) ([]NumberRange, error)
 }
 
 func (b *memoryBackend) PushRange(add NumberRange) ([]NumberRange, error) {
-	// Just add
 	l, err := PrefixToE164(add.Lower)
 	if err != nil {
 		return nil, err
