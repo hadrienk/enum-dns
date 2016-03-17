@@ -1,0 +1,97 @@
+<div class="container" ng-controller="MainController" >
+
+  <div class="page-header">
+    <h1>Enum-DNS <small>interval based ENUM DNS server</small></h1>
+  </div>
+
+  <div class="form-group has-feedback">
+    <input
+          ng-model="query"
+          ng-model-options='{ debounce: 200 }'
+          ng-change='search()'
+          type="search" class="form-control" placeholder="Search for numbers here...">
+    <span class="glyphicon glyphicon-search form-control-feedback" aria-hidden="true"></span>
+  </div>
+
+  <small>
+    Showing 1234 results for query 65489
+  </small>
+
+  <div class="row" ng-repeat="interval in searchResult">
+    <div class="col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <strong>[{{ interval.lower }}:{{ interval.upper }}] <small>({{interval.upper - interval.lower}})</small></strong>
+          <div class="buttons pull-right">
+
+            <a href="#" class="btn btn-default btn-xs" role="button" ng-click="edit(interval)">Edit</a>
+
+            <button ng-click="split(interval)"
+                    type="button" class="btn btn-default btn-xs dropdown-toggle" >
+              Split
+            </button>
+
+            <div class="btn-group" dropdown>
+              <button type="button" class="btn btn-default btn-xs" dropdown-toggle
+                      aria-haspopup="true"
+                      aria-expanded="false">
+                Merge <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                <li><a href="#" ng-click="merge(interval, searchResult[$index-1])" ng-disabled="$first">upward</a></li>
+                <li><a href="#" ng-click="merge(interval, searchResult[$index+1])" ng-disabled="$last">downward</a></li>
+              </ul>
+            </div>
+
+
+
+
+          </div>
+        </div>
+        <table class="table table-condensed">
+          <thead>
+          <tr>
+            <th>Order</th>
+            <th>Preference</th>
+            <th>Flags</th>
+            <th>Service</th>
+            <th>Regexp</th>
+            <th>Replacement</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr ng-repeat="record in interval.records">
+            <td>{{ record.order }}</td>
+            <td>{{ record.preference }}</td>
+            <td>{{ record.flags }}</td>
+            <td>{{ record.service }}</td>
+            <td>{{ record.regexp }}</td>
+            <td>{{ record.replacement }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <nav>
+    <ul class="pagination pagination-sm">
+      <li>
+        <a href="#" aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+      <li><a href="#">1</a></li>
+      <li><a href="#">2</a></li>
+      <li><a href="#">3</a></li>
+      <li><a href="#">4</a></li>
+      <li><a href="#">5</a></li>
+      <li>
+        <a href="#" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+</div>

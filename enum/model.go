@@ -6,14 +6,41 @@ import (
 )
 
 type NumberRange struct {
-	Upper       uint64
-	Lower       uint64
-	Order       uint16
-	Preference  uint16
-	Flags       string
-	Service     string
-	Regexp      string
-	Replacement string
+	Upper   uint64   `json:"upper"`
+	Lower   uint64   `json:"lower"`
+	Records []Record `json:"records"`
+}
+
+type Record struct {
+	Order       uint16 `json:"order"`
+	Preference  uint16 `json:"preference"`
+	Flags       string `json:"flags"`
+	Service     string `json:"service"`
+	Regexp      string `json:"regexp"`
+	Replacement string `json:"replacement"`
+}
+
+// Check if the range overlaps with another.
+func (r *NumberRange) OverlapWith(o NumberRange) bool {
+	right := r.Lower <= o.Lower && o.Lower <= r.Upper
+	left := o.Lower <= r.Lower && r.Lower <= o.Upper
+	return (left || right)
+}
+
+func (r *NumberRange) Starts(o NumberRange) bool {
+	return r.Lower == o.Lower && r.Upper < o.Upper
+}
+
+func (r *NumberRange) Finishes(o NumberRange) bool {
+	return r.Lower > o.Lower && r.Upper == o.Upper
+}
+
+func (r *NumberRange) Contains(o NumberRange) bool {
+	return r.Lower <= o.Lower && o.Upper <= r.Upper
+}
+
+func (r *NumberRange) Equals(o NumberRange) bool {
+	return r.Lower == o.Lower && o.Upper == r.Upper
 }
 
 // RangeOverlapError is returned when an operation fails because
@@ -34,7 +61,6 @@ func (e *RangeOverlapError) Error() string {
 }
 
 type Backend interface {
-
 	// RangesBetween returns a list of ranges that enclose the given range l(ower) to u(pper) or
 	// nil if no range matches.
 	// The c parameter is the maximum count of values to return. If a negative c value is used

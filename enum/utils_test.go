@@ -1,6 +1,8 @@
 package enum
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestReverse(t *testing.T) {
 	expected := "esrever ot gnirts A"
@@ -24,4 +26,28 @@ func TestConvertEnumToInt(t *testing.T) {
 		t.Error("Expected ", enumString, " got ", expected)
 	}
 
+}
+
+func TestPrefixToE164(t *testing.T) {
+	tt := []struct {
+		in   uint64
+		exp  uint64
+		fail bool
+	}{
+		{1000000000000000, 0, true},
+		{0, 0, true},
+		{1, 100000000000000, false},
+		{2, 200000000000000, false},
+		{123456, 123456000000000, false},
+	}
+	for _, v := range tt {
+		if result, err := PrefixToE164(v.in); err != nil != v.fail {
+			t.Error("Unexpected error: ", err)
+		} else {
+			if result != v.exp {
+				t.Errorf("Expected PrefixToE164(%d) to return %d, got %d", v.in, v.exp, result)
+			}
+		}
+
+	}
 }
