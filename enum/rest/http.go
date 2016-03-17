@@ -65,8 +65,8 @@ func Pagination(vars url.Values) (after, before uint64, limit int64, err error) 
 	if a := vars.Get("after"); a != "" {
 		after, err = strconv.ParseUint(a, 10, 64)
 	}
-	if a := vars.Get("before"); a != "" {
-		after, err = strconv.ParseUint(a, 10, 64)
+	if b := vars.Get("before"); b != "" {
+		before, err = strconv.ParseUint(b, 10, 64)
 	}
 	return
 }
@@ -209,19 +209,10 @@ func (h *HttpEndpoint) SearchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if limit == 0 {
-		limit = RETURN_LIMIT
-	}
-
-	if from > to {
-		to, from = from, to
-		limit = -limit
-	}
-
 	if after != 0 {
 		if !(from <= after && after < to) {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(errors.New("Start value outside from and to").Error()))
+			w.Write([]byte(errors.New("after value outside from and to").Error()))
 			return
 		}
 		from = after
@@ -229,10 +220,19 @@ func (h *HttpEndpoint) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	if before != 0 {
 		if !(from < before && before <= to) {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(errors.New("Start value outside from and to").Error()))
+			w.Write([]byte(errors.New("before value outside from and to").Error()))
 			return
 		}
 		to = before
+	}
+
+	if limit == 0 {
+		limit = RETURN_LIMIT
+	}
+
+	if from > to {
+		to, from = from, to
+		limit = -limit
 	}
 
 	results, err := h.backend.RangesBetween(from, to, int(limit))
