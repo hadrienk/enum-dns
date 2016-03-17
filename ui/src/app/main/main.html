@@ -1,36 +1,56 @@
-<div class="container" ng-controller="MainController" >
+<div class="container" ng-controller="MainController">
 
   <div class="page-header">
-    <h1>Enum-DNS <small>interval based ENUM DNS server</small></h1>
+    <h1>Enum-DNS
+      <small>interval based ENUM DNS server</small>
+    </h1>
   </div>
 
   <div class="form-group has-feedback">
     <input
-          ng-model="query"
-          ng-model-options='{ debounce: 200 }'
-          ng-change='search()'
-          type="search" class="form-control" placeholder="Search for numbers here...">
+      ng-model="query"
+      ng-model-options='{ debounce: 250 }'
+      ng-change='search()'
+      type="search" class="form-control" placeholder="Search for numbers here...">
     <span class="glyphicon glyphicon-search form-control-feedback" aria-hidden="true"></span>
   </div>
 
-  <small>
-    Showing 1234 results for query 65489
-  </small>
+  <div class="row">
+    <div class="col-md-12 clearfix">
+      <div class="pull-left">
+        <button ng-disabled="min <= params.from || searching || !searchResult.length || !query" ng-click="previous()"
+                type="button"
+                class="btn btn-default btn-xs">previous
+        </button>
+        <button ng-disabled="max >= params.to || searching || !searchResult || !query" ng-click="next()" type="button"
+                class="btn btn-default btn-xs">next
+        </button>
+      </div>
+      <div class="pull-right">
+        Limit to
+        <div class="btn-group btn-xs">
+          <label class="btn btn-default btn-xs" ng-model="params.limit" btn-radio="10" ng-change='search()' uncheckable>10</label>
+          <label class="btn btn-default btn-xs" ng-model="params.limit" btn-radio="50" ng-change='search()' uncheckable>50</label>
+          <label class="btn btn-default btn-xs" ng-model="params.limit" btn-radio="100" ng-change='search()'
+                 uncheckable>100</label>
+        </div>
+        results
+      </div>
+    </div>
+    <br />
+  </div>
 
-  <div class="row" ng-repeat="interval in searchResult">
+
+  <div class="row" ng-if="!searching" ng-repeat="interval in searchResult">
     <div class="col-md-12">
+
       <div class="panel panel-default">
         <div class="panel-heading">
-          <strong>[{{ interval.lower }}:{{ interval.upper }}] <small>({{interval.upper - interval.lower}})</small></strong>
-          <div class="buttons pull-right">
+          [{{ interval.lower }}:{{ interval.upper }}] ({{interval.upper - interval.lower + 1 }} numbers)
 
-            <a href="#" class="btn btn-default btn-xs" role="button" ng-click="edit(interval)">Edit</a>
-
-            <button ng-click="split(interval)"
-                    type="button" class="btn btn-default btn-xs dropdown-toggle" >
-              Split
-            </button>
-
+          <div class="btn-group pull-right" role="group" aria-label="Actions on interval">
+            <button ng-click="edit(interval)" type="button" class="btn btn-default btn-xs" role="button">Edit</button>
+            <button ng-click="split(interval)" ng-disabled="(interval.upper - interval.lower) == 0" type="button" class="btn btn-default btn-xs" role="button">Split</button>
             <div class="btn-group" dropdown>
               <button type="button" class="btn btn-default btn-xs" dropdown-toggle
                       aria-haspopup="true"
@@ -38,14 +58,10 @@
                 Merge <span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
-                <li><a href="#" ng-click="merge(interval, searchResult[$index-1])" ng-disabled="$first">upward</a></li>
-                <li><a href="#" ng-click="merge(interval, searchResult[$index+1])" ng-disabled="$last">downward</a></li>
+                <li ng-disabled="$first"><a href="#" ng-click="merge(interval, searchResult[$index-1])">up</a></li>
+                <li ng-disabled="$last"><a href="#" ng-click="merge(interval, searchResult[$index+1])">down</a></li>
               </ul>
             </div>
-
-
-
-
           </div>
         </div>
         <table class="table table-condensed">
@@ -74,24 +90,27 @@
     </div>
   </div>
 
-  <nav>
-    <ul class="pagination pagination-sm">
-      <li>
-        <a href="#" aria-label="Previous">
-          <span aria-hidden="true">&laquo;</span>
-        </a>
-      </li>
-      <li><a href="#">1</a></li>
-      <li><a href="#">2</a></li>
-      <li><a href="#">3</a></li>
-      <li><a href="#">4</a></li>
-      <li><a href="#">5</a></li>
-      <li>
-        <a href="#" aria-label="Next">
-          <span aria-hidden="true">&raquo;</span>
-        </a>
-      </li>
-    </ul>
-  </nav>
+  <div class="row" ng-if="searchResults">
+    <div class="col-md-12">
+      <div class="pull-left">
+        <button ng-disabled="min <= params.from || searching || !searchResults" ng-click="previous()" type="button"
+                class="btn btn-default btn-xs">previous
+        </button>
+        <button ng-disabled="max >= params.to || searching || !searchResults" ng-click="next()" type="button"
+                class="btn btn-default btn-xs">next
+        </button>
+      </div>
+
+      <div class="pull-right small">
+        Limit to
+        <div class="btn-group btn-xs">
+          <label class="btn btn-default btn-xs" ng-model="params.limit" btn-radio="10" uncheckable>10</label>
+          <label class="btn btn-default btn-xs" ng-model="params.limit" btn-radio="50" uncheckable>50</label>
+          <label class="btn btn-default btn-xs" ng-model="params.limit" btn-radio="100" uncheckable>100</label>
+        </div>
+        results
+      </div>
+    </div>
+  </div>
 
 </div>
