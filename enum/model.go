@@ -27,8 +27,20 @@ func (r *NumberRange) OverlapWith(o NumberRange) bool {
 	return (left || right)
 }
 
+func (r *NumberRange) Starts(o NumberRange) bool {
+	return r.Lower == o.Lower && r.Upper < o.Upper
+}
+
+func (r *NumberRange) Finishes(o NumberRange) bool {
+	return r.Lower > o.Lower && r.Upper == o.Upper
+}
+
 func (r *NumberRange) Contains(o NumberRange) bool {
 	return r.Lower <= o.Lower && o.Upper <= r.Upper
+}
+
+func (r *NumberRange) Equals(o NumberRange) bool {
+	return r.Lower == o.Lower && o.Upper == r.Upper
 }
 
 // RangeOverlapError is returned when an operation fails because
