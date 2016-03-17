@@ -30,8 +30,6 @@ import (
 
 func main() {
 
-	viper.SetDefault("dns.service", "E2U+sip")
-	viper.SetDefault("dns.preference", "100")
 	viper.SetDefault("dns.address", "127.0.0.1:5354")
 	viper.SetDefault("dns.domain", "e164.arpa.")
 
@@ -85,9 +83,11 @@ func main() {
 	}()
 
 	go func() {
+
 		handler := rest.CreateHttpHandlerFor(&backend,
+			// TODO Check that the directory exists.
 			http.FileServer(
-				http.Dir("/home/hadrien/Projects/Go/src/enum-dns/ui/dist/"),
+				http.Dir("./ui/dist/"),
 			),
 		)
 
@@ -102,9 +102,10 @@ func main() {
 	for {
 		select {
 		case s := <-sig:
+			server.Shutdown()
+			// TODO Handle the http server shutdown as well
 			// Fatalf calls os.Exit(1)
 			Error.Fatalf("Signal (%d) received, stopping\n", s)
-			server.Shutdown()
 		}
 	}
 }
