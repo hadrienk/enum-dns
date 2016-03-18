@@ -1,16 +1,16 @@
-// enum-dns project main.go
+// Copyright 2016 Hadrien Kohl hadrien.kohl@gmail.com
 //
-// A simple ENUM dns server
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// This DNS server replies to ENUM query using a customizable
-// backend implementation. The difference with other general
-// purpose DNS systems is that it allows to answer enum queries
-// using custom implementations that can for instance answer
-// queries based on number ranges.
+// http://www.apache.org/licenses/LICENSE-2.0
 //
-// Author: Hadrien Kohl <hadrien.kohl@gmail.com>
-//
-//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package main
 
