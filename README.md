@@ -12,13 +12,17 @@ It relies on a simple interface to query the data. You can make it fit your curr
   
 ```go
 type Backend interface {
-
+    // RangesBetween returns a list of ranges that enclose the given range l(ower) to u(pper) or
+	// nil if no range matches.
+	// The c parameter is the maximum count of values to return. If a negative c value is used
+	// it will return the ranges in reverse order.
 	RangesBetween(l, u uint64, c int) ([]NumberRange, error)
 
-	AddRange(r NumberRange) ([]NumberRange, error)
+	// Add a range to the backend. Any range overlapping with the one added will be deleted or
+	// adjusted to make room for the new one and returned.
+	PushRange(r NumberRange) ([]NumberRange, error)
 
-	RemoveRange(r NumberRange) error
-
+	// Close the backend.
 	Close() error
 }
 ```
@@ -27,31 +31,62 @@ type Backend interface {
 
 Enum-dns also comes with a REST API to manipulate the backend's data. 
 
-/inverval GET
+### `/inverval/{from}:{to}`
 
-`/inverval/{prefix},[{limit}]` GET|UPDATE
+#### Parameters
 
-prefix: String [1-9][0-9]{0,13}
-limit: String -?[0-9]+
+ *required*
+ from: number between 10000000000000000 and 9999999999999999
+  
+  *required*
+  to: number between 10000000000000000 and 9999999999999999 
 
-Example: 
+#### Methods
+  
+  GET: Return the interval and its record. Return 404 if no interval for the passed from and to parameters exist.
+  
+  PUT: Create a new interval. Returns 201 if creation succeeded, and an array of the intervals that were overwritten.
+  
+  Content: 
+  
+```json
+  {
+          "upper":100000858306882,
+          "lower":100000000000000,
+          "records":[
+             {
+                "order":10,
+                "preference":100,
+                "flags":"",
+                "service":"E2U+sip",
+                "regexp":"!^(.*)$!sip:\\@default!",
+                "replacement":"."
+             }
+          ]
+       }
+```  
+  Example content
+  
+```json
+  [
+     {
+        "upper":100000858306882,
+        "lower":100000000000000,
+        "records":[
+           {
+              "order":10,
+              "preference":100,
+              "flags":"",
+              "service":"E2U+sip",
+              "regexp":"!^(.*)$!sip:\\@default!",
+              "replacement":"."
+           }
+        ]
+     }
+  ]
+  
+```
 
-Calling '/interval/47,10' will return the 10 *first* intervals that overlap with [470000000000000,479999999999999] in ascending order.
-
-Calling '/interval/474,-10' will return the 10 *last* intervals that overlap with [474000000000000,474999999999999] in descending order.
-
-/inverval/{from}[,{to}[,{limit}]] GET|UPDATE
-
-from, to: String [1-9][0-9]{0,14} 
-limit: String -?[0-9]+
-
-Example:
-
-Calling /inverval/471234567800000 will return all the intervals that match [471234567800000,471234567800000]. One in that case.
-
-Calling /inverval/471234567800000,472000000000000 will return all the intervals that match [471234567800000,472000000000000] in ascending order.
-
-Calling /inverval/471234567800000,472000000000000,- will return all the intervals that match [471234567800000,472000000000000] in descending order.
  
 ## Existing backends
 
@@ -103,7 +138,7 @@ forward-zone:
         
 ```
 
-### named
+### Named (Bind 9)
 
 ```
 // /etc/bind/named.conf
@@ -127,7 +162,7 @@ zone "e164.arpa" {
 
 ```
 
-### dnsmasq
+### Dnsmasq
 
 ```
 # /etc/dnsmasq.conf
