@@ -28,7 +28,7 @@ func (r *NumberRange) OverlapWith(o NumberRange) bool {
 }
 
 func (r *NumberRange) Starts(o NumberRange) bool {
-	return r.Lower == o.Lower && r.Upper < o.Upper
+	return r.Lower == o.Lower && r.Upper > o.Upper
 }
 
 func (r *NumberRange) Finishes(o NumberRange) bool {
