@@ -1,5 +1,7 @@
 # enum-dns
 
+[![Build Status](https://travis-ci.org/hadrienk/enum-dns.svg?branch=master)](https://travis-ci.org/hadrienk/enum-dns)
+
 Enum-dns is a simple ENUM DNS server written in Go that is made to handle ENUM requests only.
  
 Many DNS server implementations support NAPTR and thus can serve as an ENUM server. However, they usually store records in a flat database. In the case of ENUM, this can get highly unpractical since a common use case is to route SIP requests directed to a range of numbers to a location.
