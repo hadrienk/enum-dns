@@ -15,10 +15,10 @@
 package main
 
 import (
-	"enum-dns/enum"
-	"enum-dns/enum/backend/memory"
+	mb "enum-dns/enum/backend/mysql"
 	enumdns "enum-dns/enum/dns"
 	"enum-dns/enum/rest"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/miekg/dns"
 	"github.com/spf13/viper"
 	"log"
@@ -51,21 +51,19 @@ func main() {
 		log.Ldate|log.Ltime|log.Lshortfile)
 
 	// Memory
-	backend, err := memory.NewMemoryBackend()
+	//backend, err := memory.NewMemoryBackend()
+	//if err != nil {
+	//	Error.Fatalf("backend: could not start the backend: %v", err)
+	//}
+	//defer backend.Close()
+
+	backend, err := mb.NewMysqlBackend("mysql", "root:@tcp(127.0.0.1:3306)/enum?strict&sql_mode=ANSI")
 	if err != nil {
 		Error.Fatalf("backend: could not start the backend: %v", err)
 	}
 	defer backend.Close()
 
-	backend.PushRange(enum.NumberRange{
-		Lower: 100000000000000,
-		Upper: 999999999999999,
-		Records: []enum.Record{
-			{Regexp: "!^(.*)$!sip:\\@default!", Service: "E2U+sip",
-				Preference: 100, Replacement: ".", Order: 10},
-		},
-	})
-
+	// TODO: validate domain.
 	domain := dns.Fqdn(viper.GetString("dns.domain"))
 	address := viper.GetString("dns.address")
 	dnsHandler := enumdns.ENUMHandler{
