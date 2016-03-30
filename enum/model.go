@@ -6,8 +6,8 @@ import (
 )
 
 type NumberRange struct {
-	Upper   uint64   `json:"upper"`
 	Lower   uint64   `json:"lower"`
+	Upper   uint64   `json:"upper"`
 	Records []Record `json:"records"`
 }
 

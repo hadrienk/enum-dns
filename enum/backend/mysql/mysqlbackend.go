@@ -4,8 +4,10 @@ package mysql
 import (
 	"database/sql"
 	. "enum-dns/enum"
+	"errors"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
+	"log"
 	"math"
 )
 
@@ -31,35 +33,58 @@ func (b mysqlbackend) PushRange(r NumberRange) ([]NumberRange, error) {
 	}
 	defer tx.Rollback()
 
-	rows, err := tx.Query("SELECT lower, upper FROM interval WHERE lower <= ? AND ? <= upper;",
+	rows, err := tx.Query("SELECT lower, upper FROM \"interval\" WHERE lower <= ? AND ? <= upper;",
 		r.Lower, r.Lower,
 	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
+	intervals := []NumberRange{}
 	for rows.Next() {
 		interval := NumberRange{}
-		err = rows.Scan(interval.Lower, interval.Upper)
+		err = rows.Scan(&interval.Lower, &interval.Upper)
 		if err != nil {
 			return nil, err
 		}
+		intervals = append(intervals, interval)
+	}
+	rows.Close()
 
-		updateQuery, args, err := updateIntervalQuery(r, interval).ToSql()
+	for _, it := range intervals {
+
+		updateQuery, args, err := updateIntervalQuery(r, it).ToSql()
 		if err != nil {
 			return nil, err
 		}
+		log.Print(updateQuery, args)
 
-		_, err = tx.Exec(updateQuery, args...)
+		result, err := tx.Exec(updateQuery, args...)
 		if err != nil {
 			return nil, err
+		}
+		n, err := result.RowsAffected()
+		if err != nil {
+			return nil, err
+		}
+		if n == 0 {
+			return nil, errors.New("Failed to update")
 		}
 
 	}
-
-	_, err = tx.Exec("INSERT INTO interval (lower, upper) VALUES (?, ?);", r.Lower, r.Upper)
+	log.Print("INSERT INTO \"interval\" (lower, upper) VALUES (?, ?);", r.Lower, r.Upper)
+	_, err = tx.Exec("INSERT INTO \"interval\" (lower, upper) VALUES (?, ?);", r.Lower, r.Upper)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, record := range r.Records {
+		log.Print("INSERT INTO record(lower, upper, order, preference, flags, service, regexp, replacement) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+			r.Lower, r.Upper, record.Order,
+			record.Preference, record.Flags,
+			record.Service, record.Regexp, record.Replacement,
+		)
 		_, err := tx.Exec("INSERT INTO record(lower, upper, order, preference, flags, service, regexp, replacement) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
 			r.Lower, r.Upper, record.Order,
 			record.Preference, record.Flags,
@@ -70,9 +95,7 @@ func (b mysqlbackend) PushRange(r NumberRange) ([]NumberRange, error) {
 		}
 	}
 
-	tx.Commit()
-
-	return nil, nil
+	return nil, tx.Commit()
 }
 
 func updateIntervalQuery(r NumberRange, n NumberRange) sq.Sqlizer {
@@ -81,35 +104,38 @@ func updateIntervalQuery(r NumberRange, n NumberRange) sq.Sqlizer {
 		sq.Eq{"lower": r.Lower},
 		sq.Eq{"upper": r.Upper},
 	}
-	if !n.Contains(r) {
+	log.Printf("[%10d:%10d].Contains([%10d:%10d])", n.Lower, n.Upper, r.Lower, r.Upper)
+	if n.Contains(r) {
 		update := sq.Update("\"interval\"")
 		switch {
 		case r.Precedes(n):
-			update.Set("upper", n.Lower-1)
+			update = update.Set("upper", n.Lower-1)
 		case r.Succeeds(n):
-			update.Set("lower", n.Upper+1)
+			update = update.Set("lower", n.Upper+1)
+		default:
+			return sq.Delete("\"interval\"").Where(condition)
 		}
 		return update.Where(condition)
-	} else {
-		return sq.Delete("\"interval\"").Where(condition)
 	}
+
+	return nil
+
 }
 
 func buildIntervalQueryFor(r NumberRange) sq.SelectBuilder {
 
 	columns := []string{
-		"i.lower", "i.upper",
-		"r.order", "r.preference",
-		"r.flags", "r.service",
-		"r.regexp", "r.replacement",
+		"lower", "upper",
+		"\"order\"", "preference",
+		"flags", "service",
+		"\"regexp\"", "replacement",
 	}
-	interval := sq.Select(columns...).From("\"interval\" i")
-	interval = interval.LeftJoin("record r ON r.lower = i.lower AND r.upper = i.upper")
+	interval := sq.Select(columns...).From("record")
 	interval = interval.Where(
 		sq.Or{
-			sq.Expr("? BETWEEN i.lower AND i.upper", r.Lower),
-			sq.Expr("? BETWEEN i.lower AND i.upper", r.Upper),
-			sq.Expr("? <= i.lower AND ? >= i.upper", r.Lower, r.Upper),
+			sq.Expr("? BETWEEN lower AND upper", r.Lower),
+			sq.Expr("? BETWEEN lower AND upper", r.Upper),
+			sq.Expr("? <= lower AND ? >= upper", r.Lower, r.Upper),
 		},
 	)
 	return interval

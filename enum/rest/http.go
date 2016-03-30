@@ -238,7 +238,9 @@ func (h *HttpEndpoint) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	results, err := h.backend.RangesBetween(from, to, int(limit))
 
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		//json.NewEncoder(w).Encode(err)
+		log.Panic(err.Error())
 	} else {
 		json.NewEncoder(w).Encode(results)
 	}
