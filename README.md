@@ -12,7 +12,7 @@ It relies on a simple interface to query the data. You can make it fit your curr
   
 ```go
 type Backend interface {
-    // RangesBetween returns a list of ranges that enclose the given range l(ower) to u(pper) or
+    	// RangesBetween returns a list of ranges that enclose the given range l(ower) to u(pper) or
 	// nil if no range matches.
 	// The c parameter is the maximum count of values to return. If a negative c value is used
 	// it will return the ranges in reverse order.
